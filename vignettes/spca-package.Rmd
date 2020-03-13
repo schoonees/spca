@@ -1,5 +1,5 @@
 ---
-title: "spca R Package"
+title: "spca: An R Package for Sparse Principal Components Analysis"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{spca-package}
@@ -10,10 +10,167 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7, 
+  fig.height = 7,
+  fig.align = "center",
+  out.width = "70%"
 )
 ```
+This package implements the $L_1$-penalized matrix decomposition of Witten, Hastie and Tibshirani (2009), and applies it
+to the case of principal components analysis (PCA). Similar functionality is available in the **PMA** package. This document 
+provides a short introduction to the package. Note that the package was developed mainly for educational purposes and has
+not been tested extensively.
 
-```{r setup}
-library(spca)
+We will use the following packages:
+```{r setup, message = FALSE}
+library("spca")
+library("tidyverse")
 ```
+
+The help pages for the two main functions in the package are available at:
+
+```{r eval = FALSE}
+?mspca
+```
+
+for the multiple-component sparse PCA implementation, and 
+```{r eval = FALSE}
+?mpmd
+```
+
+for the multiple-component $L_1$-penalized matrix decomposition of Witten *et al.* (2009).
+
+## FIFA 17 data
+
+As an example, we will use data on football players in the Dutch top league in the FIFA 2017 video game. This is available in the package as `fifa_nl`:
+
+```{r data}
+data("fifa_nl")
+```
+
+The data contains `r nrow(fifa_nl)` players and `r ncol(fifa_nl)` variables. The variables are:
+
+```{r}
+colnames(fifa_nl)
+```
+
+Specifically, the variables `crossing` through `sliding_tackle` are skill levels from 0 to 100. These will be used in
+our principal components analysis (PCA) below. 
+
+To prepare the data for PCA, we do the following:
+
+  1. Remove all goalkeepers, as they have markedly different skill levels compared to outfield players on some variables.
+  2. Select on the columns related to skill levels.
+  3. Convert these to a matrix for PCA.
+  
+These are implemented executed by the following code:
+```{r}
+fifa_nl <- fifa_nl %>% filter(Position != "Gk")
+fifa_x <- fifa_nl %>% select(crossing:sliding_tackle) %>% 
+  as.matrix()
+```
+
+There are `r nrow(fifa_x)` outfield players in this data set. We do not consider the goalkeepers any further.
+
+## Ordinary PCA
+
+We start by conducting ordinary PCA on `fifa_x` as follows:
+
+```{r}
+k <- 8
+pca_fifa <- prcomp(fifa_x, rank. = k)
+```
+
+For simplicity, only `r k` components have been retained. The proportion of variance explained (PVE) by the solution is:
+```{r}
+summary(pca_fifa)
+```
+
+A scree plot is as follows:
+```{r}
+plot(pca_fifa, type = "l")
+```
+
+Hence four or five components are needed to capture about 80% of the total variance in the data. A biplot showing the scores and loadings for the rank-2 solution is:
+
+```{r }
+biplot(pca_fifa, cex = c(0.75, 1), col = c("grey50", "red"))
+```
+
+## Comparison to Sparse PCA without penalties
+
+Would we get the same result using the sparse PCA functionality in **spca** if the penalty is not active? Since there are `r ncol(fifa_x)` variables in `fifa_x`, if we set the $L_1$-norm constraint parameter to larger than $\sqrt{`r ncol(fifa_x)`}$, it will have no effect and we should get the same solution as in ordinary PCA. This can be achieved as follows:
+
+```{r}
+pca2_fifa <- mspca(fifa_x, k = k, c = 6)
+```
+
+The proportion of variance explained table is as follows:
+```{r}
+pca2_fifa$pve
+```
+
+And we have that 
+```{r}
+all.equal(pca2_fifa$pve$std_deviation, pca_fifa$sdev[1:k])
+```
+
+For example, the following shows that component 5 has the same loadings:
+```{r}
+all.equal(pca_fifa$rotation[, 5], pca2_fifa$loadings[, 5])
+```
+
+## Sparse PCA
+
+We now turn to sparse PCA. In this case, both the number of components and the $L_1$ constraint $c$
+have to be determined, the latter possibly independently for different components. Possible values range
+between $c = 1$, the most restrictive, to $c = \sqrt{`r ncol(fifa_x)`}$, when the constraint does not have any impact anymore.
+
+Our focus here will be on interpretability, hence we will use relatively small values. The tighter the constraint, the more components are required to capture the same proportion of total variance.
+
+For illustration, we use $k = 5$ and values of $c$ decreasing from 3 to 1.5:
+
+```{r}
+spca_fifa <- mspca(fifa_x, k = 5, c = seq(from = 3, to = 1.5, length.out = 5))
+```
+
+The PVE table is then:
+```{r}
+spca_fifa$pve
+```
+
+We can manipulate the loadings to try to characterize them:
+
+```{r}
+spca_fifa$loadings %>% 
+  round(4) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Skill") %>% 
+  arrange(PC1, PC2, PC3, PC4, PC5) 
+```
+
+It seems that PC1 contrasts particular aspects of defensive play to particular aspects of attacking play. PC2 seems to highlight some aspects of midfield play, while PC3 captures variability in terms of particular athletic abilities. PC4 is to a large degree about stamina, while PC5 is dominated by penalty-taking abilities.
+
+We can plot the scores on the first two PCs as follows:
+
+```{r}
+spca_fifa$scores %>% as.data.frame() %>% 
+  cbind(fifa_nl) %>% 
+  ggplot(aes(x = PC1, y = PC2, colour = Position, size = eur_value)) +
+  geom_point() + coord_equal()
+```
+
+Here the size of the point depends on the value of the player, and the colour on the position typically played. Clearly, the players with higher value tend to lie on the lower bottom and right boundary of the point cloud. 
+
+## Final remarks
+
+This vignette briefly illustrated the sparse PCA functionality in the **spca** package. Open questions remain, including
+
+* How should $c$ and $k$ (the rank) be selected?
+* Is there any value in having different values of $c$ for different components?
+
+## References
+
+Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to 
+sparse principal components and canonical correlation analysis. *Biostatistics*, 10(3), 515-534.

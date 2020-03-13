@@ -10,11 +10,15 @@ Authors@R: c(person(given = "Pieter", family = "Schoonees", role = c("aut",
 Description: Lasso-penalized singular value decomposition, and principal components analyis based
     on this decomposition. The algorithms are based on Witten, Hastie and Tibshirani (2009),
     and is similar to that in the \pkg{PMA} package.
-License: GPL (>= 2)
+License: GPL-3
+URL: https://github.com/schoonees/spca
+BugReports: https://github.com/schoonees/spca/issues
 ByteCompile: yes
 BuildResaveData: best
 Encoding: UTF-8
 RoxygenNote: 7.0.2
+Depends:
+  R (>= 3.6),
 Suggests: 
     knitr,
     rmarkdown
