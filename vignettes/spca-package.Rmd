@@ -170,6 +170,8 @@ This vignette briefly illustrated the sparse PCA functionality in the **spca** p
 * How should $c$ and $k$ (the rank) be selected?
 * Is there any value in having different values of $c$ for different components?
 
+A detailed comparison with the [PMA](https://cran.r-project.org/web/packages/PMA/index.html) package should still be done.
+
 ## References
 
 Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to 

@@ -7,8 +7,10 @@ currently implemented. A [vignette](vignettes/) is available with some examples.
 The package can be installed using:
 
 ```
-devtools::install_github("username/packagename")
+devtools::install_github("schoonees/spca")
 ```
+
+Note that the package was created for educational purposes and has not been tested extensively.
 
 ## References
 
