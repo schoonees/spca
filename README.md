@@ -1,7 +1,7 @@
 # An R Package for Sparse Principal Components Analysis
 
 This package implements the penalized matrix decomposition of Witten, Hastie and Tibshirani (2009), and 
-applies it to sparse principal components analysis. Only the special case using lasso-penalties are
+applies it to sparse principal components analysis. Only the special case where lasso-type penalties are used is
 currently implemented. A [vignette](vignettes/) is available with some examples.
 
 The package can be installed using:
