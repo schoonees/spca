@@ -1,0 +1,17 @@
+Package: PMD
+Type: Package
+Title: Lasso-Penalized Singular Value Decomposition 
+Version: 1.0
+Date: 2020-03-12
+Author: Pieter Schoonees [aut, cre]
+Maintainer: Pieter Schoonees <schoonees@gmail.com>
+Authors@R: c(person(given = "Pieter", family = "Schoonees", role = c("aut",
+    "cre"), email = "schoonees@gmail.com"))
+Description: Lasso-penalized singular value decomposition, and principal components analyis based
+    on this decomposition. The algorithms are based on Witten, Hastie and Tibshirani (2009),
+    and is similar to that in the \pkg{PMA} package.
+License: GPL (>= 2)
+ByteCompile: yes
+BuildResaveData: best
+Encoding: UTF-8
+RoxygenNote: 7.0.2
