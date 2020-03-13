@@ -1,6 +1,6 @@
-Package: PMD
+Package: spca
 Type: Package
-Title: Lasso-Penalized Singular Value Decomposition 
+Title: Lasso-Penalized Singular Value Decomposition and Sparse Principal Components Analysis
 Version: 1.0
 Date: 2020-03-12
 Author: Pieter Schoonees [aut, cre]
@@ -15,3 +15,7 @@ ByteCompile: yes
 BuildResaveData: best
 Encoding: UTF-8
 RoxygenNote: 7.0.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

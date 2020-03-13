@@ -63,6 +63,10 @@ Z2 <- matrix(rnorm(100), nrow = 5, ncol = 20)
 mspca(Z2, c = 2.5, k = 5)
 
 ## Example with different c for components 1 and 2
-mspca(Z, k = 2, c = c(1.5, 1.25))
+mspca(Z, k = 2, c = c(1.5, 1.1))
+
+## Comparison to PCA
+summary(prcomp(Z2))
+mspca(Z2, k = 5, c = max(dim(Z2)))$pve
 
 }
