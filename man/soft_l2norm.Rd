@@ -17,16 +17,16 @@ vectors of L2-norm empirically equal to zero.
 }
 \details{
 This function is not exported, as it is an internal utility function. Use
-\code{PMD:::soft_l2norm} to access it.
+\code{spca:::soft_l2norm} to access it.
 }
 \examples{
 set.seed(1)
 (z <- rnorm(10))
-PMD:::soft_l2norm(z, 0.5)
-sqrt(sum(PMD:::soft_l2norm(z, 0.5)^2))
+spca:::soft_l2norm(z, 0.5)
+sqrt(sum(spca:::soft_l2norm(z, 0.5)^2))
 
 (z <- rnorm(100))
-PMD:::soft_l2norm(z, 0.75)
-sqrt(sum(PMD:::soft_l2norm(z, 0.5)^2))
+spca:::soft_l2norm(z, 0.75)
+sqrt(sum(spca:::soft_l2norm(z, 0.5)^2))
 
 }

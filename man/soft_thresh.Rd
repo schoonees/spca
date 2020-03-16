@@ -16,15 +16,15 @@ Simple vectorized soft-thresholding utility function.
 }
 \details{
 This function is not exported, as it is an internal utility function. Use
-\code{PMD:::soft_thresh} to access it.
+\code{spca:::soft_thresh} to access it.
 }
 \examples{
 set.seed(1)
 (z <- rnorm(10))
-PMD:::soft_thresh(z, 0.5)
+spca:::soft_thresh(z, 0.5)
 
 y <- seq(from = -2, to = 2, by = 0.1)
-plot(y, PMD:::soft_thresh(y, 0.4), type = "l")
+plot(y, spca:::soft_thresh(y, 0.4), type = "l")
 lines(y, y, lty = 3)
 
 }

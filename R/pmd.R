@@ -33,7 +33,7 @@
 #' ## Equivalent to rank-1 SVD (almost)
 #' pmd_Z <- pmd(Z, c1 = sqrt(nrow(Z)), c2 = sqrt(ncol(Z)))
 #' all.equal(pmd_Z[-1], svd(Z, nu = 1, nv = 1)[-1], 
-#'          tolerance = (.Machine$double.eps)^0.25)
+#'           tolerance = (.Machine$double.eps)^0.25)
 #'          
 #' ## Increasing c2 incrementally
 #' pts <- seq(from = 1, to = sqrt(ncol(Z)), length.out = 10)
@@ -93,8 +93,6 @@ pmd <- function(Z, c1 = 1, c2 = 1, maxit = 100,
     
     ## Find lambda_1
     Zv <- Z %*% v
-    # lambda1 <- optimize(f = function(lambda) sum(abs(soft_l2norm(Zv, lambda = lambda))) - c1, 
-                        # interval = c(0, max(abs(Zv)) - .Machine$double.eps^0.5))$minimum
     lambda1 <- binary_search(x = Zv, c = c1)
     
     ## Update u
@@ -102,8 +100,6 @@ pmd <- function(Z, c1 = 1, c2 = 1, maxit = 100,
     
     ## Find lambda_2
     Zu <- t(Z) %*% u
-    # lambda2 <- optimize(f = function(lambda) sum(abs(soft_l2norm(Zu, lambda = lambda))) - c2, 
-    #                     interval = c(0, max(abs(Zu)) - .Machine$double.eps^0.5))$minimum
     lambda2 <- binary_search(x = Zu, c = c2)
     
     ## Update v

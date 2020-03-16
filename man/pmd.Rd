@@ -50,7 +50,7 @@ pmd(Z)
 ## Equivalent to rank-1 SVD (almost)
 pmd_Z <- pmd(Z, c1 = sqrt(nrow(Z)), c2 = sqrt(ncol(Z)))
 all.equal(pmd_Z[-1], svd(Z, nu = 1, nv = 1)[-1], 
-         tolerance = (.Machine$double.eps)^0.25)
+          tolerance = (.Machine$double.eps)^0.25)
          
 ## Increasing c2 incrementally
 pts <- seq(from = 1, to = sqrt(ncol(Z)), length.out = 10)
