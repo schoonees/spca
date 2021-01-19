@@ -1,8 +1,8 @@
 Package: spca
 Type: Package
 Title: Lasso-Penalized Singular Value Decomposition and Sparse Principal Components Analysis
-Version: 1.0
-Date: 2020-03-12
+Version: 1.1
+Date: 2021-01-19
 Author: Pieter Schoonees [aut, cre]
 Maintainer: Pieter Schoonees <schoonees@gmail.com>
 Authors@R: c(person(given = "Pieter", family = "Schoonees", role = c("aut",
@@ -16,9 +16,9 @@ BugReports: https://github.com/schoonees/spca/issues
 ByteCompile: yes
 BuildResaveData: best
 Encoding: UTF-8
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Depends:
-  R (>= 3.6),
+  R (>= 4.0),
 Suggests: 
     knitr,
     rmarkdown

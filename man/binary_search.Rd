@@ -20,7 +20,7 @@ normalization to length one. The value of lambda found is the smallest value
 that attains the required constraint value.
 }
 \details{
-Note that in the \code{\link{PMA}} package, the binary search will find the largest 
+Note that in the \code{\link{PMA}} package (version 1.2), the binary search will find the largest 
 value of lambda that imposes the required limit on the L1-norm after soft-thresholding in case
 this norm has regions of lambda for which it is constant. This leads to sparser solutions
 than what is necessary.

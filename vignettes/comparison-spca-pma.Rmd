@@ -2,7 +2,7 @@
 title: "A Comparison Between the spca and PMA packages"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{spca-package}
+  %\VignetteIndexEntry{comparison-spca-pma}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -103,11 +103,43 @@ The result for **PMA** is:
 PMA_X$prop.var.explained
 ```
 
+These are identical. Both packages use the method proposed by Shen & Huang (2008) to calculate the rank-$k$ approximation of a matrix $\mathbf{X}$ as:
+$$
+ \mathbf{X}_k = \mathbf{X} \mathbf{V}_k (\mathbf{V}_k^{'} \mathbf{V}_k)^{-1} \mathbf{V}_k^{'}.
+$$
+This is necessary since the components in the columns of $\mathbf{V}_k$ are not orthogonal anymore. The total variance explained by the rank-$k$ approximation is then the trace of $\mathbf{X}_k^{'}\mathbf{X}_k$.
+
+## Ordinary PCA
+
+The result of ordinary PCA applied to `X` is:
+
+```{r}
+pca_X <- prcomp(X)
+pca_X
+```
+The variance information is as follows:
+
+```{r}
+summary(pca_X)
+```
+This can be emulated by setting $c$ high in `mspca()`:
+
+```{r}
+mspca(X, k = 5, c = sqrt(5), center = FALSE, scale = FALSE)$pve
+```
+
 
 ## Final remarks
 
+* It is not clear yet why `mspca()` and `SPC()` have different loadings.
+* The method for calculating $\mathbf{X}_k$ proposed by Shen & Huang (2008) suggests a different deflation algorithm for constructing sparse PCA solutions of rank higher than one.
+* The possibility exists to adjust `mspca()` such that the lasso penalty is relaxed after selecting the variables with non-zero loadings.
+* The convention of `SPC()` whereby the grand mean of the input matrix is set to zero when `scale = TRUE` requires explanation.
+
 
 ## References
+
+Shen, H., & Huang, J. Z. (2008). Sparse principal component analysis via regularized low rank matrix approximation. *Journal of Multivariate Analysis*, 99(6), 1015-1034.
 
 Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to 
 sparse principal components and canonical correlation analysis. *Biostatistics*, 10(3), 515-534.

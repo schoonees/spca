@@ -100,15 +100,16 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
   
   ## Calculate PC scores, standard deviations of PCs
   colnames(vmat) <- paste0("PC", seq_len(k))
-  scores <- Z %*% vmat
+  scores <- as.data.frame(Z %*% vmat %*% solve(t(vmat) %*% vmat) %*% t(vmat))
+  colnames(scores) <- paste0("PC", seq_len(k))
   sdev <- d / sqrt((nrow(Z) - 1))
   
   ## Total variance to be explained, and proportion explained
   tot_var <- sum(svd(Z, nu = 0, nv = 0)$d^2)
   pve <- data.frame(PC = seq_len(k), 
                     std_deviation = sdev, 
-                    # prop_variance = var_expl / tot_var, 
-                    cum_var_explained = cum_var_expl / tot_var)
+                    prop_variance = diff(c(0, cum_var_expl)) / tot_var,
+                    cum_prop = cum_var_expl / tot_var)
   
   ## Return
   rownames(vmat) <- colnames(Z)
