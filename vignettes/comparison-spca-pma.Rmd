@@ -1,0 +1,113 @@
+---
+title: "A Comparison Between the spca and PMA packages"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{spca-package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7, 
+  fig.height = 7,
+  fig.align = "center",
+  out.width = "70%"
+)
+```
+
+This vignette compares the results from the **PMA** package's implementation of sparse principal components analysis (SPCA) to the implementation in the **spca** package. Both these are based on the $L_1$-penalized matrix decomposition of Witten, Hastie and Tibshirani (2009). The **PMA** package also includes functions for other analysis methods, such as canonical correlation analysis (CCA), and the fused lasso penalty. These are not currently implemented in **spca**.
+
+We will use the following packages:
+```{r setup, message = FALSE}
+library("spca")
+library("PMA")
+```
+
+
+## Application to random data
+
+We will use a random data matrix to compare the two implementations:
+
+```{r}
+set.seed(801)
+X <- matrix(rnorm(100), nrow = 20, ncol = 5)
+```
+
+We column-centre this so that we do not have to ask the PCA implementations to do it first:
+
+```{r}
+X <- sweep(X, MARGIN = 2, STATS = colMeans(X), FUN = `-`)
+```
+
+This is important since the implementations use different standardizations. See *Details* under `?spca` for some information.
+
+We start by conducting sparse PCA on `X` using the **spca** package:
+
+```{r}
+spca_X <- mspca(X, k = 5, c = 1.25, center = FALSE, scale = FALSE)
+```
+
+Here the value of $c$ must be in the interval $[1, \sqrt{5}]$, so that 1.25 should result is a relatively sparse results. 
+
+We can do the same analysis using `SPC()` from **PMA**:
+
+```{r}
+PMA_X <- SPC(X, K = 5, sumabsv = 1.25, trace = FALSE, center = FALSE, niter = 100)
+```
+
+## Comparing the loadings
+
+The loadings for **spca** are:
+
+```{r}
+spca_X$loadings
+```
+
+The loadings for **PMA** are:
+
+```{r}
+PMA_X$v
+```
+
+These are similar, but not identical. 
+
+The $L_1$-norms of the columns are as follows:
+
+```{r}
+colSums(abs(spca_X$loadings))
+colSums(abs(PMA_X$v))
+```
+
+The $L_2$-norms of the columns are as follows:
+```{r}
+colSums(spca_X$loadings^2)
+colSums(PMA_X$v^2)
+```
+
+Clearly, both solutions satisfy the constraints.
+
+## Comparing the explained variance
+
+The explained variance for **spca** is:
+
+```{r}
+spca_X$pve
+```
+
+The result for **PMA** is:
+
+```{r}
+PMA_X$prop.var.explained
+```
+
+
+## Final remarks
+
+
+## References
+
+Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to 
+sparse principal components and canonical correlation analysis. *Biostatistics*, 10(3), 515-534.

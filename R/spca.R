@@ -37,7 +37,7 @@
 spca <- function(Z, c = 1, maxit = 100, eps = sqrt(.Machine$double.eps), 
                  center = TRUE, scale = FALSE) {
   
-  ## Mean-center and/or scale columns to standard devation of 1
+  ## Mean-center and/or scale columns to standard deviation of 1
   if (center || scale) {
     Z <- scale(Z, center = center, scale = scale)
   }

@@ -55,7 +55,7 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
     stop(paste("Argument 'k' should be at most", min(dim(Z))))
   }
   
-  ## Mean-center and/or scale columns to standard devation of 1
+  ## Mean-center and/or scale columns to standard devaition of 1
   if (center || scale) {
     Z <- scale(Z, center = center, scale = scale)
   }
@@ -68,13 +68,15 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
     stop("Argument 'c' should be either length 1 or length 'k'.")
   }
 
-  
   ## Initialization of deflated matrix, iteration counter, SVD components
   R <- Z
   i <- 0
   d <- double(k)
   umat <- matrix(NA, nrow = nrow(Z), ncol = k)
   vmat <- matrix(NA, nrow = ncol(Z), ncol = k)
+  
+  ## Initialization of variance explained
+  cum_var_expl <- double(k)
   
   ## Iterate
   for (i in seq_len(k)) {
@@ -89,6 +91,11 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
     
     # Deflate the current residual matrix
     R <- R - R_pmd$d[1] * tcrossprod(R_pmd$u, R_pmd$v)
+    
+    # Calculate the approximation Z_k and store variance explained
+    vcurr <- vmat[, seq_len(i), drop = FALSE]
+    Z_k <- Z %*% vcurr %*% solve(t(vcurr) %*% vcurr) %*% t(vcurr)
+    cum_var_expl[i] <- sum(Z_k^2)
   }
   
   ## Calculate PC scores, standard deviations of PCs
@@ -97,14 +104,14 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
   sdev <- d / sqrt((nrow(Z) - 1))
   
   ## Total variance to be explained, and proportion explained
-  tot_var <- sum(svd(Z, nu = 0, nv = 0)$d^2) / (nrow(Z) - 1)
+  tot_var <- sum(svd(Z, nu = 0, nv = 0)$d^2)
   pve <- data.frame(PC = seq_len(k), 
                     std_deviation = sdev, 
-                    prop_variance = sdev^2 / tot_var, 
-                    cum_prop_variance = cumsum(sdev^2) / tot_var)
+                    # prop_variance = var_expl / tot_var, 
+                    cum_var_explained = cum_var_expl / tot_var)
   
   ## Return
   rownames(vmat) <- colnames(Z)
   rownames(scores) <- rownames(Z)
-  list(scores = scores, loadings = vmat, sdev = sdev, pve = pve)
+  list(scores = scores, loadings = vmat, sdev = sdev, pve = pve, svd = list(d = d, u = umat, v = vmat))
 }
