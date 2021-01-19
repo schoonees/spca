@@ -48,6 +48,10 @@
 #' spca:::mspca2(Z2, c = 1.5, k = 5, deflation = "Witten")$svd[c("d", "v")]
 #' spca:::mspca2(Z2, c = 1.5, k = 5, deflation = "Shen")$svd[c("d", "v")]
 #' 
+#' ## Relaxed lasso
+#' spca:::mspca2(Z, c = 1.5, k = 5, relax = TRUE)$pve
+#' spca:::mspca2(Z, c = 1.5, k = 5, relax = FALSE)$pve
+#' 
 #' ## Example with different c for components 1 and 2
 #' spca:::mspca2(Z, k = 2, c = c(1.5, 1.1))
 #' 
@@ -99,7 +103,23 @@ mspca2 <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
     ## Update d, u, v
     if (relax) {
       
+      ## Identify nonzero loadings
+      ind_nz <- which(abs(drop(R_pmd$v)) > .Machine$double.eps^0.5)
+      
+      ## Get rank 1 SPCA of R (never scale here) but now without penalty
+      R_pmd <- spca(Z = R[, ind_nz, drop = FALSE], c = sqrt(ncol(Z)), 
+                    maxit = maxit, eps = eps, center = FALSE, scale = FALSE)
+      
+      ## Update d, u and v
+      d[i] <- R_pmd$d
+      umat[, i] <- R_pmd$u
+      vvec <- double(ncol(Z))
+      vvec[ind_nz] <- R_pmd$v
+      vmat[, i] <- vvec
+      
     } else {
+      
+      ## Update d, u and v
       d[i] <- R_pmd$d
       umat[, i] <- R_pmd$u
       vmat[, i] <- R_pmd$v
@@ -111,7 +131,7 @@ mspca2 <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
     cum_var_expl[i] <- sum(Z_k^2)
     
     # Deflate the current residual matrix
-    R <- switch(deflation, Witten = R - R_pmd$d[1] * tcrossprod(R_pmd$u, R_pmd$v),
+    R <- switch(deflation, Witten = R - R_pmd$d[1] * tcrossprod(R_pmd$u, vmat[, i, drop = FALSE]),
                 Shen = Z - Z_k)
   }
   

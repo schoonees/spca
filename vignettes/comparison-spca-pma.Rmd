@@ -21,11 +21,11 @@ knitr::opts_chunk$set(
 This vignette compares the results from the **PMA** package's implementation of sparse principal components analysis (SPCA) to the implementation in the **spca** package. Both these are based on the $L_1$-penalized matrix decomposition of Witten, Hastie and Tibshirani (2009). The **PMA** package also includes functions for other analysis methods, such as canonical correlation analysis (CCA), and the fused lasso penalty. These are not currently implemented in **spca**.
 
 We will use the following packages:
+
 ```{r setup, message = FALSE}
 library("spca")
 library("PMA")
 ```
-
 
 ## Application to random data
 
@@ -50,7 +50,7 @@ We start by conducting sparse PCA on `X` using the **spca** package:
 spca_X <- mspca(X, k = 5, c = 1.25, center = FALSE, scale = FALSE)
 ```
 
-Here the value of $c$ must be in the interval $[1, \sqrt{5}]$, so that 1.25 should result is a relatively sparse results. 
+Here the value of $c$ must be in the interval $[1, \sqrt{5}]$, so that 1.25 should result is a relatively sparse results.
 
 We can do the same analysis using `SPC()` from **PMA**:
 
@@ -72,7 +72,7 @@ The loadings for **PMA** are:
 PMA_X$v
 ```
 
-These are similar, but not identical. 
+These are similar, but not identical.
 
 The $L_1$-norms of the columns are as follows:
 
@@ -82,6 +82,7 @@ colSums(abs(PMA_X$v))
 ```
 
 The $L_2$-norms of the columns are as follows:
+
 ```{r}
 colSums(spca_X$loadings^2)
 colSums(PMA_X$v^2)
@@ -103,11 +104,9 @@ The result for **PMA** is:
 PMA_X$prop.var.explained
 ```
 
-These are identical. Both packages use the method proposed by Shen & Huang (2008) to calculate the rank-$k$ approximation of a matrix $\mathbf{X}$ as:
-$$
+These are identical. Both packages use the method proposed by Shen & Huang (2008) to calculate the rank-$k$ approximation of a matrix $\mathbf{X}$ as: $$
  \mathbf{X}_k = \mathbf{X} \mathbf{V}_k (\mathbf{V}_k^{'} \mathbf{V}_k)^{-1} \mathbf{V}_k^{'}.
-$$
-This is necessary since the components in the columns of $\mathbf{V}_k$ are not orthogonal anymore. The total variance explained by the rank-$k$ approximation is then the trace of $\mathbf{X}_k^{'}\mathbf{X}_k$.
+$$ This is necessary since the components in the columns of $\mathbf{V}_k$ are not orthogonal anymore. The total variance explained by the rank-$k$ approximation is then the trace of $\mathbf{X}_k^{'}\mathbf{X}_k$.
 
 ## Ordinary PCA
 
@@ -117,29 +116,29 @@ The result of ordinary PCA applied to `X` is:
 pca_X <- prcomp(X)
 pca_X
 ```
+
 The variance information is as follows:
 
 ```{r}
 summary(pca_X)
 ```
+
 This can be emulated by setting $c$ high in `mspca()`:
 
 ```{r}
 mspca(X, k = 5, c = sqrt(5), center = FALSE, scale = FALSE)$pve
 ```
 
-
 ## Final remarks
 
-* It is not clear yet why `mspca()` and `SPC()` have different loadings.
-* The method for calculating $\mathbf{X}_k$ proposed by Shen & Huang (2008) suggests a different deflation algorithm for constructing sparse PCA solutions of rank higher than one.
-* The possibility exists to adjust `mspca()` such that the lasso penalty is relaxed after selecting the variables with non-zero loadings.
-* The convention of `SPC()` whereby the grand mean of the input matrix is set to zero when `scale = TRUE` requires explanation.
-
+-   It is not clear yet why `mspca()` and `SPC()` have different loadings.
+-   The method for calculating $\mathbf{X}_k$ proposed by Shen & Huang (2008) suggests a different deflation algorithm for constructing sparse PCA solutions of rank higher than one (See `spca:::mspca2()`).
+-   The possibility exists to adjust `mspca()` such that the lasso penalty is relaxed after selecting the variables with non-zero loadings (See `spca:::mspca2()`).
+-   The convention of `SPC()` whereby the grand mean of the input matrix is set to zero when `scale = TRUE` requires explanation.
+-   An investigation of the effect of the starting values is necessary.
 
 ## References
 
 Shen, H., & Huang, J. Z. (2008). Sparse principal component analysis via regularized low rank matrix approximation. *Journal of Multivariate Analysis*, 99(6), 1015-1034.
 
-Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to 
-sparse principal components and canonical correlation analysis. *Biostatistics*, 10(3), 515-534.
+Witten, D. M., Tibshirani, R., & Hastie, T. (2009). A penalized matrix decomposition, with applications to sparse principal components and canonical correlation analysis. *Biostatistics*, 10(3), 515-534.
