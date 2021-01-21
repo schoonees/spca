@@ -11,6 +11,7 @@
 #' @param Z Matrix to be decomposed
 #' @param c  L1-norm bound for u, the left singular vector. Feasible solutions are available 
 #' when values greater than or equal to 1. For values larger than \code{sqrt(nrow(Z)}, it has no effect.
+#' @param vstart Optional starting value for the v vector
 #' @param maxit Maximum number of iterations
 #' @param eps Stopping criterion, and absolute error tolerance on the mean squared reconstruction error
 #' @param center Logical indicating whether the columns of \code{Z} should be mean-centered
@@ -34,7 +35,7 @@
 #' 
 #' @export
 #' 
-spca <- function(Z, c = 1, maxit = 100, eps = sqrt(.Machine$double.eps), 
+spca <- function(Z, c = 1, vstart = NULL, maxit = 100, eps = sqrt(.Machine$double.eps), 
                  center = TRUE, scale = FALSE) {
   
   ## Mean-center and/or scale columns to standard deviation of 1
@@ -51,9 +52,13 @@ spca <- function(Z, c = 1, maxit = 100, eps = sqrt(.Machine$double.eps),
     stop("Argument 'c' is outside the allowed range.")
   }
   
-  ## SVD for starting v (matrix with 1 column)
-  Z_svd <- svd(Z, nu = 0, nv = 1)
-  v <- Z_svd$v
+  ## Starting value for v (matrix with 1 column): Use ordinary SVD if not supplied
+  if (is.null(vstart)) {
+    Z_svd <- svd(Z, nu = 0, nv = 1)
+    v <- Z_svd$v
+  } else {
+    v <- matrix(vstart, ncol = 1, nrow = ncol(Z))
+  }
   
   ## Initialize vector for storing reconstruction error, and iteration counter
   err_vec <- double(maxit)

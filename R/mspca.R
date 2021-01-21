@@ -13,6 +13,9 @@
 #' @param c  L1-norm bound for V (greater than or equal to 1), either length-1, or 
 #' with k entries (one for each component). Feasible solutions are available 
 #' for values greater than or equal to 1. For values larger than \code{sqrt(ncow(Z)}, it has no effect.
+#' @param start Starting values to use for the v vector in each iteration: Either \code{"independent"} or \code{"predetermined"}. The former uses the first right singular vector of the 
+#' residual matrix after removing previous components in each step, while the former 
+#' uses the right singular vectors of the SVD of \code{Z}
 #' @param maxit Maximum number of iterations
 #' @param eps Stopping criterion, and absolute error tolerance on the mean squared reconstruction error
 #' @param center Logical indicating whether to column-centre the matrix Z 
@@ -47,7 +50,8 @@
 #' 
 #' @export
 #' 
-mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps), 
+mspca <- function(Z, k = 2, c = 1, start = c("independent", "predetermined"), 
+                  maxit = 20, eps = sqrt(.Machine$double.eps), 
                   center = TRUE, scale = FALSE) {
   
   ## Check
@@ -75,14 +79,28 @@ mspca <- function(Z, k = 2, c = 1, maxit = 20, eps = sqrt(.Machine$double.eps),
   umat <- matrix(NA, nrow = nrow(Z), ncol = k)
   vmat <- matrix(NA, nrow = ncol(Z), ncol = k)
   
+  ## Match on start
+  start <- match.arg(start)
+  
+  ## V from SVD of Z for starting values
+  if (start == "predetermined") {
+    vmat <- svd(Z, nu = 0, nv = k)$v
+  }
+  
   ## Initialization of variance explained
   cum_var_expl <- double(k)
   
   ## Iterate
   for (i in seq_len(k)) {
     
+    ## Determine starting value for v: Either v from R or from Z
+    vstart <- switch(start, 
+                     independent = svd(R, nu = 0, nv = 1)$v[, 1], 
+                     predetermined = vmat[, i])
+    
     ## Get rank 1 SPCA of R (never scale here)
-    R_pmd <- spca(Z = R, c = c[i], maxit = maxit, eps = eps, center = FALSE, scale = FALSE)
+    R_pmd <- spca(Z = R, c = c[i], vstart = vstart, maxit = maxit, eps = eps, 
+                  center = FALSE, scale = FALSE)
     
     ## Update d, u, v
     d[i] <- R_pmd$d

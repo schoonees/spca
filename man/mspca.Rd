@@ -8,6 +8,7 @@ mspca(
   Z,
   k = 2,
   c = 1,
+  start = c("independent", "predetermined"),
   maxit = 20,
   eps = sqrt(.Machine$double.eps),
   center = TRUE,
@@ -22,6 +23,10 @@ mspca(
 \item{c}{L1-norm bound for V (greater than or equal to 1), either length-1, or 
 with k entries (one for each component). Feasible solutions are available 
 for values greater than or equal to 1. For values larger than \code{sqrt(ncow(Z)}, it has no effect.}
+
+\item{start}{Starting values to use for the v vector in each iteration: Either \code{"independent"} or \code{"predetermined"}. The former uses the first right singular vector of the 
+residual matrix after removing previous components in each step, while the former 
+uses the right singular vectors of the SVD of \code{Z}}
 
 \item{maxit}{Maximum number of iterations}
 

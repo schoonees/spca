@@ -25,6 +25,7 @@ We will use the following packages:
 ```{r setup, message = FALSE}
 library("spca")
 library("PMA")
+library("tidyverse")
 ```
 
 ## Application to random data
@@ -58,7 +59,7 @@ We can do the same analysis using `SPC()` from **PMA**:
 PMA_X <- SPC(X, K = 5, sumabsv = 1.25, trace = FALSE, center = FALSE, niter = 100)
 ```
 
-## Comparing the loadings
+### Comparing the loadings
 
 The loadings for **spca** are:
 
@@ -90,7 +91,7 @@ colSums(PMA_X$v^2)
 
 Clearly, both solutions satisfy the constraints.
 
-## Comparing the explained variance
+### Comparing the explained variance
 
 The explained variance for **spca** is:
 
@@ -108,7 +109,7 @@ These are identical. Both packages use the method proposed by Shen & Huang (2008
  \mathbf{X}_k = \mathbf{X} \mathbf{V}_k (\mathbf{V}_k^{'} \mathbf{V}_k)^{-1} \mathbf{V}_k^{'}.
 $$ This is necessary since the components in the columns of $\mathbf{V}_k$ are not orthogonal anymore. The total variance explained by the rank-$k$ approximation is then the trace of $\mathbf{X}_k^{'}\mathbf{X}_k$.
 
-## Ordinary PCA
+### Ordinary PCA
 
 The result of ordinary PCA applied to `X` is:
 
@@ -129,13 +130,123 @@ This can be emulated by setting $c$ high in `mspca()`:
 mspca(X, k = 5, c = sqrt(5), center = FALSE, scale = FALSE)$pve
 ```
 
+### Changing the starting values
+
+Note that the results from **spca** and **PMA** are essentially equivalent when the same starting values are used:
+
+```{r}
+spca_X_pred <- mspca(X, k = 5, c = 1.25, start = "predetermined", 
+                     center = FALSE, scale = FALSE, maxit = 100, eps = 1e-12)
+```
+
+Accounting for sign flips, these are almost equivalent:
+
+```{r}
+all.equal(abs(spca_X_pred$svd$v), abs(PMA_X$v), check.attributes = FALSE)
+```
+
+## Application to empirical data
+
+Here we use the `fifa_nl` data set including in the **spca** package:
+
+```{r}
+data("fifa_nl")
+```
+
+We filter out the goalkeepers and retain the skill variables:
+
+```{r}
+fifa_nl <- fifa_nl %>% filter(Position != "Gk")
+fifa_x <- fifa_nl %>% select(crossing:sliding_tackle) %>% 
+  as.matrix()
+```
+
+We column-centre this so that we do not have to ask the PCA implementations to do it first:
+
+```{r}
+fifa_x <- sweep(fifa_x, MARGIN = 2, STATS = colMeans(fifa_x), FUN = `-`)
+```
+
+We can now apply sparse PCA using **spca** and **PMA** for three components and with $c$ quite small:
+
+```{r}
+spca_fifa <- mspca(fifa_x, k = 3, c = 1.5, maxit = 20, start = "predetermined")
+PMA_fifa <- SPC(fifa_x, K = 3, sumabsv = 1.5, trace = FALSE, 
+                center = FALSE, niter = 20)
+```
+
+Note that we run the algorithms for the same number of iterations, since they have different stopping criteria. We also specify that the starting values for the $\boldsymbol{v}$ vectors should be `"predetermined"` from the SVD of the input matrix.
+
+### Comparing the loadings
+
+Let's compare the loadings for these. Here are the loadings the first component:
+
+```{r}
+data.frame(spca = spca_fifa$loadings[, 1], PMA = PMA_fifa$v[, 1])
+```
+
+These are numerically identical:
+
+```{r}
+all.equal(spca_fifa$loadings[, 1], PMA_fifa$v[, 1], check.attributes = FALSE)
+
+```
+
+The second component loadings are:
+
+```{r}
+data.frame(spca = spca_fifa$loadings[, 2], PMA = PMA_fifa$v[, 2])
+```
+
+These are also almost equivalent:
+
+```{r}
+all.equal(spca_fifa$loadings[, 2], PMA_fifa$v[, 2], check.attributes = FALSE)
+```
+
+The same applies to the third component:
+
+```{r}
+data.frame(spca = spca_fifa$loadings[, 3], PMA = PMA_fifa$v[, 3])
+```
+
+These are quite different:
+
+```{r}
+all.equal(abs(spca_fifa$loadings[, 3]), abs(PMA_fifa$v[, 3]), check.attributes = FALSE)
+```
+
+Note that a sign flip was ignored here.
+
+Note that both the loading matrices satisfy the inequality constraints. The $L_1$-norms are:
+
+```{r}
+apply(spca_fifa$loadings, 2, function(x) sum(abs(x)))
+apply(PMA_fifa$v, 2, function(x) sum(abs(x)))
+```
+
+The $L_2$-norms are:
+
+```{r}
+apply(spca_fifa$loadings, 2, function(x) sqrt(sum(x^2)))
+apply(PMA_fifa$v, 2, function(x) sqrt(sum(x^2)))
+```
+
+### Comparing the variance explained
+
+The variance explained for the **spca** and **PMA** solutions are practicallt the same:
+
+```{r}
+spca_fifa$pve$cum_prop
+PMA_fifa$prop.var.explained
+```
+
 ## Final remarks
 
--   It is not clear yet why `mspca()` and `SPC()` have different loadings.
 -   The method for calculating $\mathbf{X}_k$ proposed by Shen & Huang (2008) suggests a different deflation algorithm for constructing sparse PCA solutions of rank higher than one (See `spca:::mspca2()`).
 -   The possibility exists to adjust `mspca()` such that the lasso penalty is relaxed after selecting the variables with non-zero loadings (See `spca:::mspca2()`).
 -   The convention of `SPC()` whereby the grand mean of the input matrix is set to zero when `scale = TRUE` requires explanation.
--   An investigation of the effect of the starting values is necessary.
+-   An investigation of the effect of the starting values is necessary. Note that the default starting values for `mspca()` gives different results for components two onwards. It seems that starting values are very important for stricter penalties.
 
 ## References
 

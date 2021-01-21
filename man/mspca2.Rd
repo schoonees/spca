@@ -12,7 +12,8 @@ mspca2(
   eps = sqrt(.Machine$double.eps),
   center = TRUE,
   scale = FALSE,
-  deflation = c("Witten", "Shen")
+  deflation = c("Witten", "Shen"),
+  relax = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ for values greater than or equal to 1. For values larger than \code{sqrt(ncow(Z)
 
 \item{scale}{Logical indicating whether to set the standard deviations of the columns of Z equal
 to one before analysis}
+
+\item{deflation}{Character string indicating deflation procedure to use; either "Witten" or "Shen"}
 }
 \value{
 A list with the following components:
@@ -62,14 +65,19 @@ set.seed(1)
 Z <- matrix(rnorm(100), nrow = 20, ncol = 5)
 
 ## Witten deflation
-spca:::mspca2(Z, c = 1.25, k = 5)
+spca:::mspca2(Z, c = 1.5, k = 5, deflation = "Witten")$svd[c("d", "v")]
 
 ## Shen deflation
-spca:::mspca2(Z, c = 1.25, k = 5)
+spca:::mspca2(Z, c = 1.5, k = 5, deflation = "Shen")$svd[c("d", "v")]
 
 ## Random matrix example with n < p
 Z2 <- matrix(rnorm(100), nrow = 5, ncol = 20)
-spca:::mspca2(Z2, c = 2.5, k = 5)
+spca:::mspca2(Z2, c = 1.5, k = 5, deflation = "Witten")$svd[c("d", "v")]
+spca:::mspca2(Z2, c = 1.5, k = 5, deflation = "Shen")$svd[c("d", "v")]
+
+## Relaxed lasso
+spca:::mspca2(Z, c = 1.5, k = 5, relax = TRUE)$pve
+spca:::mspca2(Z, c = 1.5, k = 5, relax = FALSE)$pve
 
 ## Example with different c for components 1 and 2
 spca:::mspca2(Z, k = 2, c = c(1.5, 1.1))

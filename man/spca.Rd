@@ -7,6 +7,7 @@
 spca(
   Z,
   c = 1,
+  vstart = NULL,
   maxit = 100,
   eps = sqrt(.Machine$double.eps),
   center = TRUE,
@@ -18,6 +19,8 @@ spca(
 
 \item{c}{L1-norm bound for u, the left singular vector. Feasible solutions are available 
 when values greater than or equal to 1. For values larger than \code{sqrt(nrow(Z)}, it has no effect.}
+
+\item{vstart}{Optional starting value for the v vector}
 
 \item{maxit}{Maximum number of iterations}
 
