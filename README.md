@@ -2,7 +2,7 @@
 
 This package implements the penalized matrix decomposition of Witten, Hastie and Tibshirani (2009), and 
 applies it to sparse principal components analysis. Only the special case where lasso-type penalties are used is
-currently implemented. Two [vignettes](vignettes/) is available with some examples and comparisons.
+currently implemented. Two [vignettes](vignettes/) are available with some examples and comparisons.
 
 The package can be installed using:
 
